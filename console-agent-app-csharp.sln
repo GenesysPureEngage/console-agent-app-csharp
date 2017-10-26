@@ -3,13 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "console-agent-app-csharp", "console-agent-app-csharp.csproj", "{F8F3901D-162B-4C56-B75C-17E5FDEF353C}"
-	ProjectSection(ProjectDependencies) = postProject
-		{D6EA24EB-0ED6-40B3-812A-84FD259E9D2B} = {D6EA24EB-0ED6-40B3-812A-84FD259E9D2B}
-	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Genesys.Workspace", "..\workspace-client-csharp\src\Genesys.Workspace\Genesys.Workspace.csproj", "{D6EA24EB-0ED6-40B3-812A-84FD259E9D2B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CometD.NET", "..\CometD.NET-master\CometD.NET\CometD.NET.csproj", "{876EF4CB-B05D-42AE-AFEE-94620B9EF82D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,22 +19,6 @@ Global
 		{F8F3901D-162B-4C56-B75C-17E5FDEF353C}.Release|Any CPU.ActiveCfg = Release|x86
 		{F8F3901D-162B-4C56-B75C-17E5FDEF353C}.Release|x86.ActiveCfg = Release|x86
 		{F8F3901D-162B-4C56-B75C-17E5FDEF353C}.Release|x86.Build.0 = Release|x86
-		{D6EA24EB-0ED6-40B3-812A-84FD259E9D2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D6EA24EB-0ED6-40B3-812A-84FD259E9D2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D6EA24EB-0ED6-40B3-812A-84FD259E9D2B}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{D6EA24EB-0ED6-40B3-812A-84FD259E9D2B}.Debug|x86.Build.0 = Debug|Any CPU
-		{D6EA24EB-0ED6-40B3-812A-84FD259E9D2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D6EA24EB-0ED6-40B3-812A-84FD259E9D2B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D6EA24EB-0ED6-40B3-812A-84FD259E9D2B}.Release|x86.ActiveCfg = Release|Any CPU
-		{D6EA24EB-0ED6-40B3-812A-84FD259E9D2B}.Release|x86.Build.0 = Release|Any CPU
-		{876EF4CB-B05D-42AE-AFEE-94620B9EF82D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{876EF4CB-B05D-42AE-AFEE-94620B9EF82D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{876EF4CB-B05D-42AE-AFEE-94620B9EF82D}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{876EF4CB-B05D-42AE-AFEE-94620B9EF82D}.Debug|x86.Build.0 = Debug|Any CPU
-		{876EF4CB-B05D-42AE-AFEE-94620B9EF82D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{876EF4CB-B05D-42AE-AFEE-94620B9EF82D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{876EF4CB-B05D-42AE-AFEE-94620B9EF82D}.Release|x86.ActiveCfg = Release|Any CPU
-		{876EF4CB-B05D-42AE-AFEE-94620B9EF82D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -55,16 +55,15 @@
     <Reference Include="PowerArgs">
       <HintPath>packages\PowerArgs.Dev.2.7.1.0\lib\net45\PowerArgs.dll</HintPath>
     </Reference>
-    <Reference Include="Genesys.Workspace">
-      <HintPath>..\workspace-client-csharp\src\Genesys.Workspace\bin\Debug\Genesys.Workspace.dll</HintPath>
-    </Reference>
+    <Reference Include="System.Net.Http" />
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\workspace-client-csharp\src\Genesys.Workspace\bin\Debug\Newtonsoft.Json.dll</HintPath>
+      <HintPath>packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="RestSharp">
-      <HintPath>..\workspace-client-csharp\src\Genesys.Workspace\bin\Debug\RestSharp.dll</HintPath>
+      <HintPath>packages\RestSharp.105.2.3\lib\net46\RestSharp.dll</HintPath>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -91,10 +90,6 @@
     <ProjectReference Include="..\CometD.NET-master\CometD.NET\CometD.NET.csproj">
       <Project>{876ef4cb-b05d-42ae-afee-94620b9ef82d}</Project>
       <Name>CometD.NET</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\workspace-client-csharp\src\Genesys.Workspace\Genesys.Workspace.csproj">
-      <Project>{D6EA24EB-0ED6-40B3-812A-84FD259E9D2B}</Project>
-      <Name>Genesys.Workspace</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
