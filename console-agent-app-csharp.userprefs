@@ -1,0 +1,18 @@
+﻿<Properties StartupConfiguration="{F8F3901D-162B-4C56-B75C-17E5FDEF353C}|Default">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Authentication/AuthenticationApi.cs">
+    <Files>
+      <File FileName="WorkspaceConsole.cs" Line="173" Column="30" />
+      <File FileName="log4net.config" Line="24" Column="3" />
+      <File FileName="Authentication/ApiClient.cs" Line="1" Column="1" />
+      <File FileName="Authentication/AuthenticationApi.cs" Line="36" Column="1" />
+      <File FileName="App.config" Line="9" Column="17" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MultiItemStartupConfigurations />
+  <MonoDevelop.Ide.ItemProperties.console-agent-app-csharp PreferredExecutionTarget="MonoDevelop.Default" />
+</Properties>
