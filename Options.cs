@@ -25,7 +25,7 @@ namespace consoleagentappcsharp
 
         public string AuthBaseUrl { get; set; }
 
-        public bool IsDebugEnabled { get; set; }
+        public bool DebugEnabled { get; set; }
 
         public string DefaultAgentId { get; set; }
 
@@ -33,7 +33,7 @@ namespace consoleagentappcsharp
 
         public string DefaultDestination { get; set; }
 
-        public bool IsAutoLogin { get; set; }
+        public bool AutoLogin { get; set; }
 
         public static Options parseOptions(string[] args)
         {

@@ -62,12 +62,6 @@
     <Reference Include="RestSharp">
       <HintPath>packages\RestSharp.105.2.3\lib\net46\RestSharp.dll</HintPath>
     </Reference>
-    <Reference Include="Genesys.Workspace">
-      <HintPath>..\workspace-client-csharp\src\Genesys.Workspace\bin\Debug\Genesys.Workspace.dll</HintPath>
-    </Reference>
-    <Reference Include="CometD.NET">
-      <HintPath>..\workspace-client-csharp\src\Genesys.Workspace\bin\Debug\CometD.NET.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -75,7 +69,6 @@
     <Compile Include="Options.cs" />
     <Compile Include="WorkspaceConsole.cs" />
     <Compile Include="WorkspaceConsoleException.cs" />
-    <Compile Include="Authentication\AuthenticationApi.cs" />
     <Compile Include="Authentication\ApiClient.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -89,6 +82,16 @@
     <Content Include="log4net.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\authentication-client-csharp\src\Genesys.Authentication\Genesys.Authentication.csproj">
+      <Project>{2A0EB67E-C372-475D-A31A-DFD21250F2F8}</Project>
+      <Name>Genesys.Authentication</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\workspace-client-csharp\src\Genesys.Workspace\Genesys.Workspace.csproj">
+      <Project>{B45B2CC4-D4B3-4E35-A913-D19D81215F4E}</Project>
+      <Name>Genesys.Workspace</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

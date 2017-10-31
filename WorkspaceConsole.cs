@@ -2,12 +2,40 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using consoleagentappcsharp.Authentication;
+using Genesys.Authentication.Api;
+using Genesys.Authentication.Client;
+using Genesys.Authentication.Model;
 using Genesys.Workspace;
+using Genesys.Workspace.Model;
+using RestSharp;
 using Newtonsoft.Json.Linq;
 
 namespace consoleagentappcsharp
 {
+    public class Command
+    {
+        public String Name { get; set; }
+        public List<String> Args;
+
+        public Command(String name, List<String> args)
+        {
+            this.Name = name;
+            this.Args = args;
+        }
+    }
+
+    public class CompleteParams
+    {
+        public String ConnId { get; set; }
+        public String ParentConnId { get; set; }
+
+        public CompleteParams(String connId, String parentConnId)
+        {
+            this.ConnId = connId;
+            this.ParentConnId = parentConnId;
+        }
+    }
+
     public class WorkspaceConsole
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -155,24 +183,53 @@ namespace consoleagentappcsharp
             return null;
         }
 
+        private CompleteParams GetCallIdAndParent(List<String> args)
+        {
+            //if (args != null && args.Count == 2)
+            //{
+            //    return new CompleteParams(args[0], args[1]);
+            //}
+
+            //// If ids were not provided, see if there is only one
+            //// possibility.
+            //CompleteParams params = null;
+            //if (this.api.Voice().Calls.Count == 2)
+            //{
+            //    Call call = this.api.Voice().Calls.Values(c=>c.ParentConnId != null)
+            //          .filter(c->c.getParentConnId() != null)
+            //          .findFirst().get();
+
+            //    if (call != null)
+            //    {
+            //        params = new CompleteParams(call.Id, call.ParentConnId);
+            //    }
+            //}
+
+            //return params;
+            return null;
+        }
+
         private String GetAuthToken()
         {
             log.Debug("Getting auth token...");
             String baseUrl = this.options.AuthBaseUrl != null ? this.options.AuthBaseUrl : this.options.BaseUrl;
-            ApiClient authClient = new ApiClient();
-            authClient.BasePath = baseUrl + "/auth/v3";
-            authClient.DefaultHeaders.Add("x-api-key", this.options.ApiKey);
+            ApiClient authClient = new ApiClient(baseUrl + "/auth/v3");
+            authClient.Configuration.ApiClient = authClient;  // circular reference?!?
+            authClient.Configuration.AddApiKey("x-api-key", this.options.ApiKey);
+            authClient.Configuration.AddDefaultHeader("x-api-key", this.options.ApiKey);
+            authClient.RestClient.AddDefaultHeader("x-api-key", this.options.ApiKey);
+            
             String encoded = Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1").GetBytes(this.options.ClientId + ":" + this.options.ClientSecret));
             String authorization = "Basic " + encoded;
 
-            AuthenticationApi authApi = new AuthenticationApi(authClient);
+            AuthenticationApi authApi = new AuthenticationApi(authClient.Configuration);
 
             try {
-                JObject response = authApi.RetrieveToken(
-                        "password", authorization, "application/json", "*",
-                        this.options.ClientId, this.options.Username, this.options.Password);
+                DefaultOAuth2AccessToken response = authApi.RetrieveToken(
+                        "password", authorization, null, "*",
+                        this.options.ClientId, null, this.options.Username, this.options.Password);
 
-                return response["access_token"].ToString();
+                return response.AccessToken;
             } catch (Exception e) {
                 throw new Exception("Failed to get auth token", e);
             }
@@ -210,7 +267,7 @@ namespace consoleagentappcsharp
         {
             try
             {
-                if (this.options.IsAutoLogin)
+                if (this.options.AutoLogin)
                 {
                     this.Write("autoLogin is true...");
                     this.Init();
@@ -221,6 +278,20 @@ namespace consoleagentappcsharp
             {
                 this.Write("autoLogin failed!" + e);
             }
+        }
+
+
+        private void MakeCall(List<String> args)
+        {
+            bool hasArgs = (args.Count > 0);
+            if (!hasArgs && this.options.DefaultDestination == null) {
+                this.Write("Usage: make-call <destination>");
+                return;
+            }
+
+            String destination = hasArgs ? args[0] : this.options.DefaultDestination;
+            this.Write("Sending make-call with destination [" + destination + "]...");
+            this.api.Voice().MakeCall(destination);
         }
 
         private String GetBusinessAttributeSummary()
@@ -376,658 +447,649 @@ namespace consoleagentappcsharp
 
                 for (;;)
                 {
-                    this.Prompt();
-                    Command cmd = this.ParseInput(Console.ReadLine());
-                    if (cmd == null)
+                    try
                     {
-                        continue;
-                    }
+                        this.Prompt();
+                        Command cmd = this.ParseInput(Console.ReadLine());
+                        if (cmd == null)
+                        {
+                            continue;
+                        }
 
-                    List<String> args = cmd.Args;
+                        List<string> args = cmd.Args;
+                        string id;
+                        string destination;
+                        string key;
+                        string value;
+                        //CompleteParams params;
 
-                    switch (cmd.Name)
-                    {
-                        case "initialize":
-                        case "init":
-                        case "i":
-                            this.Init();
-                            break;
+                        switch (cmd.Name)
+                        {
+                            case "initialize":
+                            case "init":
+                            case "i":
+                                this.Init();
+                                break;
 
-                        case "debug":
-                        case "d":
-                            this.api.DebugEnabled = !this.api.DebugEnabled;
-                            this.Write("Debug enabled:" + this.api.DebugEnabled);
-                            break;
+                            case "debug":
+                            case "d":
+                                this.api.DebugEnabled = !this.api.DebugEnabled;
+                                this.Write("Debug enabled:" + this.api.DebugEnabled);
+                                break;
 
-                        case "dn":
-                            this.Write("Dn: " + this.getDnSummary(this.api.Voice().Dn));
-                            break;
+                            case "dn":
+                                this.Write("Dn: " + this.getDnSummary(this.api.Voice().Dn));
+                                break;
 
-                        case "calls":
-                            this.Write(this.GetCallsSummary());
-                            break;
+                            case "calls":
+                                this.Write(this.GetCallsSummary());
+                                break;
 
-                        case "configuration":
-                        case "c":
-                            this.PrintConfiguration(args);
-                            break;
+                            case "configuration":
+                            case "c":
+                                this.PrintConfiguration(args);
+                                break;
 
-                        case "activate-channels":
-                        case "ac":
-                            this.ActivateChannels(args);
-                            break;
+                            case "activate-channels":
+                            case "ac":
+                                this.ActivateChannels(args);
+                                break;
 
-                        case "iac":
-                            this.Init();
-                            this.ActivateChannels(args);
-                            break;
+                            case "iac":
+                                this.Init();
+                                this.ActivateChannels(args);
+                                break;
 
-                        case "not-ready":
-                        case "nr":
-                            this.Write("Sending not-ready...");
-                            this.api.Voice().SetAgentNotReady();
-                            break;
+                            case "not-ready":
+                            case "nr":
+                                this.Write("Sending not-ready...");
+                                this.api.Voice().SetAgentNotReady();
+                                break;
 
-                        case "ready":
-                        case "r":
-                            this.Write("Sending ready...");
-                            this.api.Voice().SetAgentReady();
-                            break;
+                            case "ready":
+                            case "r":
+                                this.Write("Sending ready...");
+                                this.api.Voice().SetAgentReady();
+                                break;
 
-                        case "dnd-on":
-                            this.Write("Sending dnd-on...");
-                            this.api.Voice().DndOn();
-                            break;
+                            case "dnd-on":
+                                this.Write("Sending dnd-on...");
+                                this.api.Voice().DndOn();
+                                break;
 
-                        case "dnd-off":
-                            this.Write("Sending dnd-off...");
-                            this.api.Voice().DndOff();
-                            break;
+                            case "dnd-off":
+                                this.Write("Sending dnd-off...");
+                                this.api.Voice().DndOff();
+                                break;
 
-                        case "set-forward":
-                            if (args.Count() < 1)
-                            {
-                                this.Write("Usage: set-forward <destination>");
-                            }
-                            else
-                            {
-                                this.Write("Sending set-forward with destination [" + args[0] + "]...");
-                                this.api.Voice().SetForward(args[0]);
-                            }
-                            break;
+                            case "set-forward":
+                                if (args.Count() < 1)
+                                {
+                                    this.Write("Usage: set-forward <destination>");
+                                }
+                                else
+                                {
+                                    this.Write("Sending set-forward with destination [" + args[0] + "]...");
+                                    this.api.Voice().SetForward(args[0]);
+                                }
+                                break;
 
-                        case "cancel-forward":
-                            this.Write("Sending cancel-forward...");
-                            this.api.Voice().CancelForward();
-                            break;
+                            case "cancel-forward":
+                                this.Write("Sending cancel-forward...");
+                                this.api.Voice().CancelForward();
+                                break;
 
-                        case "voice-login":
-                            this.Write("Sending voice login...");
-                            this.api.Voice().Login();
-                            break;
+                            case "voice-login":
+                                this.Write("Sending voice login...");
+                                this.api.Voice().Login();
+                                break;
 
-                        case "voice-logout":
-                            this.Write("Sending voice logout...");
-                            this.api.Voice().Logout();
-                            break;
+                            case "voice-logout":
+                                this.Write("Sending voice logout...");
+                                this.api.Voice().Logout();
+                                break;
 
-                        case "make-call":
-                        case "mc":
-                            //this.makeCall(args);
-                            break;
+                            case "make-call":
+                            case "mc":
+                                this.MakeCall(args);
+                                break;
 
-                        case "release":
-                        case "rel":
-                            //id = this.getCallId(args);
-                            //if (id == null)
-                            //{
-                            //    this.Write("Usage: release <id>");
-                            //}
-                            //else
-                            //{
-                            //    this.Write("Sending release for call [" + id + "]...");
-                            //    this.api.voice().releaseCall(id);
-                            //}
-                            break;
+                            case "release":
+                            case "rel":
+                                id = this.GetCallId(args);
+                                if (id == null)
+                                {
+                                    this.Write("Usage: release <id>");
+                                }
+                                else
+                                {
+                                    this.Write("Sending release for call [" + id + "]...");
+                                    this.api.Voice().ReleaseCall(id);
+                                }
+                                break;
 
-                        case "answer":
-                        case "a":
-                            //id = this.getCallId(args);
-                            //if (id == null)
-                            //{
-                            //    this.Write("Usage: answer <id>");
-                            //}
-                            //else
-                            //{
-                            //    this.Write("Sending answer for call [" + id + "]...");
-                            //    this.api.voice().answerCall(id);
-                            //}
-                            break;
+                            case "answer":
+                            case "a":
+                                id = this.GetCallId(args);
+                                if (id == null)
+                                {
+                                    this.Write("Usage: answer <id>");
+                                }
+                                else
+                                {
+                                    this.Write("Sending answer for call [" + id + "]...");
+                                    this.api.Voice().AnswerCall(id);
+                                }
+                                break;
 
-                        case "hold":
-                        case "h":
-                            //id = this.getCallId(args);
-                            //if (id == null)
-                            //{
-                            //    this.Write("Usage: hold <id>");
-                            //}
-                            //else
-                            //{
-                            //    this.Write("Sending hold for call [" + id + "]...");
-                            //    this.api.voice().holdCall(id);
-                            //}
-                            break;
+                            case "hold":
+                            case "h":
+                                id = this.GetCallId(args);
+                                if (id == null)
+                                {
+                                    this.Write("Usage: hold <id>");
+                                }
+                                else
+                                {
+                                    this.Write("Sending hold for call [" + id + "]...");
+                                    this.api.Voice().HoldCall(id);
+                                }
+                                break;
 
-                        case "retrieve":
-                        case "ret":
-                            //id = this.getCallId(args);
-                            //if (id == null)
-                            //{
-                            //    this.Write("Usage: receive <id>");
-                            //}
-                            //else
-                            //{
-                            //    this.Write("Sending retrieve for call [" + id + "]...");
-                            //    this.api.voice().retrieveCall(id);
-                            //}
-                            break;
+                            case "retrieve":
+                            case "ret":
+                                id = this.GetCallId(args);
+                                if (id == null)
+                                {
+                                    this.Write("Usage: receive <id>");
+                                }
+                                else
+                                {
+                                    this.Write("Sending retrieve for call [" + id + "]...");
+                                    this.api.Voice().RetrieveCall(id);
+                                }
+                                break;
 
-                        case "clear-call":
-                            //id = this.getCallId(args);
-                            //if (id == null)
-                            //{
-                            //    this.Write("Usage: clear-call <id>");
-                            //}
-                            //else
-                            //{
-                            //    this.Write("Sending clear for call [" + id + "]...");
-                            //    this.api.voice().clearCall(id);
-                            //}
-                            break;
+                            case "clear-call":
+                                id = this.GetCallId(args);
+                                if (id == null)
+                                {
+                                    this.Write("Usage: clear-call <id>");
+                                }
+                                else
+                                {
+                                    this.Write("Sending clear for call [" + id + "]...");
+                                    this.api.Voice().ClearCall(id);
+                                }
+                                break;
 
-                        case "redirect":
-                            //if (args.size() < 1)
-                            //{
-                            //    this.Write("Usage: redirect <id> <destination>");
-                            //}
-                            //else
-                            //{
-                            //    // If there is only one argument take it as the destination.
-                            //    destination = args.get(args.size() - 1);
-                            //    id = this.getCallId(args.size() == 1 ? null : args);
-                            //    if (id == null)
-                            //    {
-                            //        this.Write("Usage: redirect <id> <destination>");
-                            //    }
-                            //    else
-                            //    {
-                            //        this.Write("Sending redirect for call [" + id
-                            //                + "] and destination [" + destination + "]...");
-                            //        this.api.voice().redirectCall(id, destination);
-                            //    }
-                            //}
-                            break;
+                            case "redirect":
+                                if (args.Count < 1)
+                                {
+                                    this.Write("Usage: redirect <id> <destination>");
+                                }
+                                else
+                                {
+                                    // If there is only one argument take it as the destination.
+                                    destination = args[args.Count - 1];
+                                    id = this.GetCallId(args.Count == 1 ? null : args);
+                                    if (id == null)
+                                    {
+                                        this.Write("Usage: redirect <id> <destination>");
+                                    }
+                                    else
+                                    {
+                                        this.Write("Sending redirect for call [" + id
+                                                + "] and destination [" + destination + "]...");
+                                        this.api.Voice().RedirectCall(id, destination);
+                                    }
+                                }
+                                break;
 
-                        case "initiate-conference":
-                        case "ic":
-                            //if (args.size() < 1)
-                            //{
-                            //    this.Write("Usage: initiate-conference <id> <destination>");
-                            //}
-                            //else
-                            //{
-                            //    // If there is only one argument take it as the destination.
-                            //    destination = args.get(args.size() - 1);
-                            //    id = this.getCallId(args.size() == 1 ? null : args);
-                            //    if (id == null)
+                            //case "initiate-conference":
+                            //case "ic":
+                            //    if (args.Count < 1)
                             //    {
                             //        this.Write("Usage: initiate-conference <id> <destination>");
                             //    }
                             //    else
                             //    {
-                            //        this.Write("Sending initiate-conference for call [" + id
-                            //                + "] and destination [" + destination + "]...");
-                            //        this.api.voice().initiateConference(id, destination);
+                            //        // If there is only one argument take it as the destination.
+                            //        destination = args[args.Count - 1];
+                            //        id = this.GetCallId(args.Count == 1 ? null : args);
+                            //        if (id == null)
+                            //        {
+                            //            this.Write("Usage: initiate-conference <id> <destination>");
+                            //        }
+                            //        else
+                            //        {
+                            //            this.Write("Sending initiate-conference for call [" + id
+                            //                    + "] and destination [" + destination + "]...");
+                            //            this.api.Voice().InitiateConference(id, destination);
+                            //        }
                             //    }
-                            //}
-                            break;
+                            //    break;
 
-                        case "complete-conference":
-                        case "cc":
-                            //params = this.getCallIdAndParent(args);
-                            //if (params == null) {
-                            //    this.Write("Usage: complete-conference <id> <parentConnId>");
-                            //} else {
-                            //    this.Write("Sending complete-conference for call ["
-                            //            + params.getConnId() + "] and parentConnId ["
-                            //            + params.getParentConnId() + "]...");
-                            //    this.api.voice().completeConference(params.getConnId(), params.getParentConnId());
-                            //}
-                            break;
+                            //case "complete-conference":
+                            //case "cc":
+                            //    params = this.GetCallIdAndParent(args);
+                            //    if (params == null) 
+                            //    {
+                            //        this.Write("Usage: complete-conference <id> <parentConnId>");
+                            //    } 
+                            //    else 
+                            //    {
+                            //        this.Write("Sending complete-conference for call ["
+                            //                + params.getConnId() + "] and parentConnId ["
+                            //                + params.getParentConnId() + "]...");
+                            //        this.api.Voice().completeConference(params.getConnId(), params.getParentConnId());
+                            //    }
+                            //    break;
 
-                        case "delete-from-conference":
-                        case "dfc":
-                            //if (args.size() < 1)
-                            //{
-                            //    this.Write("Usage: delete-from-conference <id> <dnToDrop>");
-                            //}
-                            //else
-                            //{
-                            //    // If there is only one argument take it as the dn to drop.
-                            //    String dnToDrop = args.get(args.size() - 1);
-                            //    id = this.getCallId(args.size() == 1 ? null : args);
-                            //    if (id == null)
+                            //case "delete-from-conference":
+                            //case "dfc":
+                            //    if (args.Count < 1)
                             //    {
                             //        this.Write("Usage: delete-from-conference <id> <dnToDrop>");
                             //    }
                             //    else
                             //    {
-                            //        this.Write("Sending delete-from-conference for call [" + id
-                            //                + " and dnToDrop [" + dnToDrop + "]...");
-                            //        this.api.voice().deleteFromConference(id, dnToDrop);
+                            //        // If there is only one argument take it as the dn to drop.
+                            //        String dnToDrop = args[args.Count - 1);
+                            //        id = this.GetCallId(args.Count == 1 ? null : args);
+                            //        if (id == null)
+                            //        {
+                            //            this.Write("Usage: delete-from-conference <id> <dnToDrop>");
+                            //        }
+                            //        else
+                            //        {
+                            //            this.Write("Sending delete-from-conference for call [" + id
+                            //                    + " and dnToDrop [" + dnToDrop + "]...");
+                            //            this.api.Voice().deleteFromConference(id, dnToDrop);
+                            //        }
                             //    }
-                            //}
-                            break;
+                            //    break;
 
 
-                        case "initiate-transfer":
-                        case "it":
-                            //if (args.size() < 1)
-                            //{
-                            //    this.Write("Usage: initiate-transfer <id> <destination>");
-                            //}
-                            //else
-                            //{
-                            //    // If there is only one argument take it as the destination.
-                            //    destination = args.get(args.size() - 1);
-                            //    id = this.getCallId(args.size() == 1 ? null : args);
-                            //    if (id == null)
+                            //case "initiate-transfer":
+                            //case "it":
+                            //    if (args.Count < 1)
                             //    {
                             //        this.Write("Usage: initiate-transfer <id> <destination>");
                             //    }
                             //    else
                             //    {
-                            //        this.Write("Sending initiate-transfer for call [" + id
-                            //                + "] and destination [" + destination + "]...");
-                            //        this.api.voice().initiateTransfer(id, destination);
+                            //        // If there is only one argument take it as the destination.
+                            //        destination = args[args.Count - 1);
+                            //        id = this.GetCallId(args.Count == 1 ? null : args);
+                            //        if (id == null)
+                            //        {
+                            //            this.Write("Usage: initiate-transfer <id> <destination>");
+                            //        }
+                            //        else
+                            //        {
+                            //            this.Write("Sending initiate-transfer for call [" + id
+                            //                    + "] and destination [" + destination + "]...");
+                            //            this.api.Voice().initiateTransfer(id, destination);
+                            //        }
                             //    }
-                            //}
-                            break;
+                            //    break;
 
-                        case "complete-transfer":
-                        case "ct":
-                            //params = this.getCallIdAndParent(args);
-                            //if (params == null) {
-                            //    this.Write("Usage: complete-transfer <id> <parentConnId>");
-                            //} else {
-                            //    this.Write("Sending complete-transfer for call ["
-                            //            + params.getConnId() + "] and parentConnId ["
-                            //            + params.getParentConnId() + "]...");
-                            //    this.api.voice().completeTransfer(params.getConnId(), params.getParentConnId());
-                            //}
-                            break;
+                            //case "complete-transfer":
+                            //case "ct":
+                            //    params = this.GetCallIdAndParent(args);
+                            //    if (params == null) {
+                            //        this.Write("Usage: complete-transfer <id> <parentConnId>");
+                            //    } else {
+                            //        this.Write("Sending complete-transfer for call ["
+                            //                + params.getConnId() + "] and parentConnId ["
+                            //                + params.getParentConnId() + "]...");
+                            //        this.api.Voice().completeTransfer(params.getConnId(), params.getParentConnId());
+                            //    }
+                            //    break;
 
 
-                        case "single-step-transfer":
-                        case "sst":
-                            //if (args.size() < 1)
-                            //{
-                            //    this.Write("Usage: single-step-transfer <id> <destination>");
-                            //}
-                            //else
-                            //{
-                            //    // If there is only one argument take it as the destination.
-                            //    destination = args.get(args.size() - 1);
-                            //    id = this.getCallId(args.size() == 1 ? null : args);
-                            //    if (id == null)
+                            //case "single-step-transfer":
+                            //case "sst":
+                            //    if (args.Count < 1)
                             //    {
                             //        this.Write("Usage: single-step-transfer <id> <destination>");
                             //    }
                             //    else
                             //    {
-                            //        this.Write("Sending single-step-transfer for call [" + id
-                            //                + "] and destination [" + destination + "]...");
-                            //        this.api.voice().singleStepTransfer(id, destination);
+                            //        // If there is only one argument take it as the destination.
+                            //        destination = args[args.Count - 1);
+                            //        id = this.GetCallId(args.Count == 1 ? null : args);
+                            //        if (id == null)
+                            //        {
+                            //            this.Write("Usage: single-step-transfer <id> <destination>");
+                            //        }
+                            //        else
+                            //        {
+                            //            this.Write("Sending single-step-transfer for call [" + id
+                            //                    + "] and destination [" + destination + "]...");
+                            //            this.api.Voice().singleStepTransfer(id, destination);
+                            //        }
                             //    }
-                            //}
-                            break;
+                            //    break;
 
-                        case "single-step-conference":
-                        case "ssc":
-                            //if (args.size() < 1)
-                            //{
-                            //    this.Write("Usage: single-step-conference <id> <destination>");
-                            //}
-                            //else
-                            //{
-                            //    // If there is only one argument take it as the destination.
-                            //    destination = args.get(args.size() - 1);
-                            //    id = this.getCallId(args.size() == 1 ? null : args);
-                            //    if (id == null)
+                            //case "single-step-conference":
+                            //case "ssc":
+                            //    if (args.Count < 1)
                             //    {
                             //        this.Write("Usage: single-step-conference <id> <destination>");
                             //    }
                             //    else
                             //    {
-                            //        this.Write("Sending single-step-conference for call [" + id
-                            //                + "] and destination [" + destination + "]...");
-                            //        this.api.voice().singleStepConference(id, destination);
+                            //        // If there is only one argument take it as the destination.
+                            //        destination = args[args.Count - 1);
+                            //        id = this.GetCallId(args.Count == 1 ? null : args);
+                            //        if (id == null)
+                            //        {
+                            //            this.Write("Usage: single-step-conference <id> <destination>");
+                            //        }
+                            //        else
+                            //        {
+                            //            this.Write("Sending single-step-conference for call [" + id
+                            //                    + "] and destination [" + destination + "]...");
+                            //            this.api.Voice().singleStepConference(id, destination);
+                            //        }
                             //    }
-                            //}
-                            break;
+                            //    break;
 
-                        case "attach-user-data":
-                        case "aud":
-                            //if (args.size() < 3)
-                            //{
-                            //    this.Write("Usage: attach-user-data <id> <key> <value>");
-                            //}
-                            //else
-                            //{
-                            //    id = args.get(0);
-                            //    key = args.get(1);
-                            //    value = args.get(2);
+                            //case "attach-user-data":
+                            //case "aud":
+                            //    if (args.Count < 3)
+                            //    {
+                            //        this.Write("Usage: attach-user-data <id> <key> <value>");
+                            //    }
+                            //    else
+                            //    {
+                            //        id = args[0);
+                            //        key = args[1);
+                            //        value = args[2);
 
-                            //    this.Write("Sending attach-user-data for call [" + id
-                            //            + "] and data [" + key + "=" + value + "]...");
+                            //        this.Write("Sending attach-user-data for call [" + id
+                            //                + "] and data [" + key + "=" + value + "]...");
 
-                            //    KeyValueCollection userData = new KeyValueCollection();
-                            //    userData.addString(key, value);
-                            //    this.api.voice().attachUserData(id, userData);
-                            //}
-                            break;
+                            //        KeyValueCollection userData = new KeyValueCollection();
+                            //        userData.addString(key, value);
+                            //        this.api.Voice().attachUserData(id, userData);
+                            //    }
+                            //    break;
 
-                        case "update-user-data":
-                        case "uud":
-                            //if (args.size() < 3)
-                            //{
-                            //    this.Write("Usage: update-user-data <id> <key> <value>");
-                            //}
-                            //else
-                            //{
-                            //    id = args.get(0);
-                            //    key = args.get(1);
-                            //    value = args.get(2);
+                            //case "update-user-data":
+                            //case "uud":
+                            //    if (args.Count < 3)
+                            //    {
+                            //        this.Write("Usage: update-user-data <id> <key> <value>");
+                            //    }
+                            //    else
+                            //    {
+                            //        id = args[0);
+                            //        key = args[1);
+                            //        value = args[2);
 
-                            //    this.Write("Sending update-user-data for call [" + id
-                            //            + "] and data [" + key + "=" + value + "]...");
+                            //        this.Write("Sending update-user-data for call [" + id
+                            //                + "] and data [" + key + "=" + value + "]...");
 
-                            //    KeyValueCollection userData = new KeyValueCollection();
-                            //    userData.addString(key, value);
-                            //    this.api.voice().updateUserData(id, userData);
-                            //}
-                            break;
+                            //        KeyValueCollection userData = new KeyValueCollection();
+                            //        userData.addString(key, value);
+                            //        this.api.Voice().updateUserData(id, userData);
+                            //    }
+                            //    break;
 
-                        case "delete-user-data-pair":
-                        case "dp":
-                            //if (args.size() < 1)
-                            //{
-                            //    this.Write("Usage: delete-user-data-pair <id> <key>");
-                            //}
-                            //else
-                            //{
-                            //    // If there is only one argument take it as the destination.
-                            //    key = args.get(args.size() - 1);
-                            //    id = this.getCallId(args.size() == 1 ? null : args);
-                            //    if (id == null)
+                            //case "delete-user-data-pair":
+                            //case "dp":
+                            //    if (args.Count < 1)
                             //    {
                             //        this.Write("Usage: delete-user-data-pair <id> <key>");
                             //    }
                             //    else
                             //    {
-                            //        this.Write("Sending delete-user-data-pair for call [" + id
-                            //                + " and key [" + key + "]...");
-                            //        this.api.voice().deleteUserDataPair(id, key);
+                            //        // If there is only one argument take it as the destination.
+                            //        key = args[args.Count - 1);
+                            //        id = this.GetCallId(args.Count == 1 ? null : args);
+                            //        if (id == null)
+                            //        {
+                            //            this.Write("Usage: delete-user-data-pair <id> <key>");
+                            //        }
+                            //        else
+                            //        {
+                            //            this.Write("Sending delete-user-data-pair for call [" + id
+                            //                    + " and key [" + key + "]...");
+                            //            this.api.Voice().deleteUserDataPair(id, key);
+                            //        }
                             //    }
-                            //}
-                            break;
+                            //    break;
 
-                        case "alternate":
-                        case "alt":
-                            //if (args.size() < 2)
-                            //{
-                            //    this.Write("Usage: alternate <id> <heldConnId>");
-                            //}
-                            //else
-                            //{
-                            //    this.Write("Sending alternate for call ["
-                            //            + args.get(0) + "] and heldConnId ["
-                            //            + args.get(1) + "]...");
-                            //    this.api.voice().alternateCalls(args.get(0), args.get(1));
-                            //}
-                            break;
+                            //case "alternate":
+                            //case "alt":
+                            //    if (args.Count < 2)
+                            //    {
+                            //        this.Write("Usage: alternate <id> <heldConnId>");
+                            //    }
+                            //    else
+                            //    {
+                            //        this.Write("Sending alternate for call ["
+                            //                + args[0) + "] and heldConnId ["
+                            //                + args[1) + "]...");
+                            //        this.api.Voice().alternateCalls(args[0), args[1));
+                            //    }
+                            //    break;
 
-                        case "merge":
-                            //if (args.size() < 2)
-                            //{
-                            //    this.Write("Usage: merge <id> <otherConnId>");
-                            //}
-                            //else
-                            //{
-                            //    this.Write("Sending merge for call ["
-                            //            + args.get(0) + "] and otherConnId ["
-                            //            + args.get(1) + "]...");
-                            //    this.api.voice().mergeCalls(args.get(0), args.get(1));
-                            //}
-                            break;
+                            //case "merge":
+                            //    if (args.Count < 2)
+                            //    {
+                            //        this.Write("Usage: merge <id> <otherConnId>");
+                            //    }
+                            //    else
+                            //    {
+                            //        this.Write("Sending merge for call ["
+                            //                + args[0) + "] and otherConnId ["
+                            //                + args[1) + "]...");
+                            //        this.api.Voice().mergeCalls(args[0), args[1));
+                            //    }
+                            //    break;
 
-                        case "reconnect":
-                            //if (args.size() < 2)
-                            //{
-                            //    this.Write("Usage: reconnect <id> <heldConnId>");
-                            //}
-                            //else
-                            //{
-                            //    this.Write("Sending reconnect for call ["
-                            //            + args.get(0) + "] and heldConnId ["
-                            //            + args.get(1) + "]...");
-                            //    this.api.voice().reconnectCall(args.get(0), args.get(1));
-                            //}
-                            break;
+                            //case "reconnect":
+                            //    if (args.Count < 2)
+                            //    {
+                            //        this.Write("Usage: reconnect <id> <heldConnId>");
+                            //    }
+                            //    else
+                            //    {
+                            //        this.Write("Sending reconnect for call ["
+                            //                + args[0) + "] and heldConnId ["
+                            //                + args[1) + "]...");
+                            //        this.api.Voice().reconnectCall(args[0), args[1));
+                            //    }
+                            //    break;
 
-                        case "send-dtmf":
-                        case "dtmf":
-                            //if (args.size() < 1)
-                            //{
-                            //    this.Write("Usage: send-dtmf <id> <digits>");
-                            //}
-                            //else
-                            //{
-                            //    // If there is only one argument take it as the dtmf digits.
-                            //    String digits = args.get(args.size() - 1);
-                            //    id = this.getCallId(args.size() == 1 ? null : args);
-                            //    if (id == null)
+                            //case "send-dtmf":
+                            //case "dtmf":
+                            //    if (args.Count < 1)
                             //    {
                             //        this.Write("Usage: send-dtmf <id> <digits>");
                             //    }
                             //    else
                             //    {
-                            //        this.Write("Sending send-dtmf for call [" + id
-                            //                + " and dtmfDigits [" + digits + "]...");
-                            //        this.api.voice().sendDTMF(id, digits);
+                            //        // If there is only one argument take it as the dtmf digits.
+                            //        String digits = args[args.Count - 1);
+                            //        id = this.GetCallId(args.Count == 1 ? null : args);
+                            //        if (id == null)
+                            //        {
+                            //            this.Write("Usage: send-dtmf <id> <digits>");
+                            //        }
+                            //        else
+                            //        {
+                            //            this.Write("Sending send-dtmf for call [" + id
+                            //                    + " and dtmfDigits [" + digits + "]...");
+                            //            this.api.Voice().sendDTMF(id, digits);
+                            //        }
                             //    }
-                            //}
-                            break;
+                            //    break;
 
-                        case "start-recording":
-                            //id = this.getCallId(args);
-                            //if (id == null)
-                            //{
-                            //    this.Write("Usage: start-recording <id>");
-                            //}
-                            //else
-                            //{
-                            //    this.Write("Sending start-recording for call [" + id + "]...");
-                            //    this.api.voice().startRecording(id);
-                            //}
-                            break;
+                            //case "start-recording":
+                            //    id = this.GetCallId(args);
+                            //    if (id == null)
+                            //    {
+                            //        this.Write("Usage: start-recording <id>");
+                            //    }
+                            //    else
+                            //    {
+                            //        this.Write("Sending start-recording for call [" + id + "]...");
+                            //        this.api.Voice().startRecording(id);
+                            //    }
+                            //    break;
 
-                        case "pause-recording":
-                            //id = this.getCallId(args);
-                            //if (id == null)
-                            //{
-                            //    this.Write("Usage: pause-recording <id>");
-                            //}
-                            //else
-                            //{
-                            //    this.Write("Sending pause-recording for call [" + id + "]...");
-                            //    this.api.voice().pauseRecording(id);
-                            //}
-                            break;
+                            //case "pause-recording":
+                            //    id = this.GetCallId(args);
+                            //    if (id == null)
+                            //    {
+                            //        this.Write("Usage: pause-recording <id>");
+                            //    }
+                            //    else
+                            //    {
+                            //        this.Write("Sending pause-recording for call [" + id + "]...");
+                            //        this.api.Voice().pauseRecording(id);
+                            //    }
+                            //    break;
 
-                        case "resume-recording":
-                            //id = this.getCallId(args);
-                            //if (id == null)
-                            //{
-                            //    this.Write("Usage: resume-recording <id>");
-                            //}
-                            //else
-                            //{
-                            //    this.Write("Sending resume-recortding for call [" + id + "]...");
-                            //    this.api.voice().resumeRecording(id);
-                            //}
-                            break;
+                            //case "resume-recording":
+                            //    id = this.GetCallId(args);
+                            //    if (id == null)
+                            //    {
+                            //        this.Write("Usage: resume-recording <id>");
+                            //    }
+                            //    else
+                            //    {
+                            //        this.Write("Sending resume-recortding for call [" + id + "]...");
+                            //        this.api.Voice().resumeRecording(id);
+                            //    }
+                            //    break;
 
-                        case "stop-recording":
-                            //id = this.getCallId(args);
-                            //if (id == null)
-                            //{
-                            //    this.Write("Usage: stop-recording <id>");
-                            //}
-                            //else
-                            //{
-                            //    this.Write("Sending stop-recording for call [" + id + "]...");
-                            //    this.api.voice().stopRecording(id);
-                            //}
-                            break;
+                            //case "stop-recording":
+                            //    id = this.GetCallId(args);
+                            //    if (id == null)
+                            //    {
+                            //        this.Write("Usage: stop-recording <id>");
+                            //    }
+                            //    else
+                            //    {
+                            //        this.Write("Sending stop-recording for call [" + id + "]...");
+                            //        this.api.Voice().stopRecording(id);
+                            //    }
+                            //    break;
 
-                        case "send-user-event":
-                            //if (args.size() < 3)
+                            //case "send-user-event":
+                            //if (args.Count < 3)
                             //{
                             //    this.Write("Usage: send-user-event <key> <value> <callUuid>");
                             //}
                             //else
                             //{
                             //    // If there are only two arguments take them as the key/value.
-                            //    key = args.get(0);
-                            //    value = args.get(1);
-                            //    String uuid = args.get(2);
+                            //    key = args[0);
+                            //    value = args[1);
+                            //    String uuid = args[2);
 
                             //    this.Write("Sending send-user-event with data [" + key + "=" + value
                             //            + "] and callUuid [" + uuid + "...");
 
                             //    KeyValueCollection userData = new KeyValueCollection();
                             //    userData.addString(key, value);
-                            //    this.api.voice().sendUserEvent(null, uuid);
+                            //    this.api.Voice().sendUserEvent(null, uuid);
                             //}
-                            break;
+                            //break;
 
-                        case "target-search":
-                        case "ts":
-                            //if (args.size() < 1)
-                            //{
-                            //    this.Write("Usage: target-search <search term>");
-                            //}
-                            //else
-                            //{
-                            //    TargetSearchResult result = this.api.targets().search(args.get(0));
-                            //    String resultMsg = "Search results:\n";
-                            //    if (result.getTargets() != null && !result.getTargets().isEmpty())
-                            //    {
-                            //        for (Target target : result.getTargets())
-                            //        {
-                            //            resultMsg += "    " + target + "\n";
-                            //        }
-                            //        resultMsg += "Total matches: " + result.getTotalMatches();
-                            //    }
-                            //    else
-                            //    {
-                            //        resultMsg += "<none>\n";
-                            //    }
+                            case "target-search":
+                            case "ts":
+                                if (args.Count < 1)
+                                {
+                                    this.Write("Usage: target-search <search term>");
+                                }
+                                else
+                                {
+                                    TargetSearchResult result = this.api.Targets().search(args[0]);
+                                    String resultMsg = "Search results:\n";
+                                    if (result.Targets != null && result.Targets.Count != 0)
+                                    {
+                                        foreach (Target target in result.Targets)
+                                        {
+                                            resultMsg += "    " + target + "\n";
+                                        }
+                                        resultMsg += "Total matches: " + result.TotalMatches;
+                                    }
+                                    else
+                                    {
+                                        resultMsg += "<none>\n";
+                                    }
 
-                            //    this.Write(resultMsg);
-                            //}
-                            break;
+                                    this.Write(resultMsg);
+                                }
+                                break;
 
-                        case "destroy":
-                        case "logout":
-                            this.Write("Cleaning up and logging out...");
-                            this.api.Destroy();
-                            break;
+                            case "destroy":
+                            case "logout":
+                                this.Write("Cleaning up and logging out...");
+                                this.api.Destroy();
+                                break;
 
-                        case "user":
-                        case "u":
-                            if (this.api.User != null)
-                            {
-                                this.Write("User details:\n" + this.api.User.ToString() + "\n");
-                            }
-                            break;
+                            case "user":
+                            case "u":
+                                if (this.api.User != null)
+                                {
+                                    this.Write("User details:\n" + this.api.User.ToString() + "\n");
+                                }
+                                break;
 
-                        case "console-config":
-                            this.Write("Configuration:\n"
-                                + "apiKey: " + this.options.ApiKey + "\n"
-                                + "baseUrl: " + this.options.BaseUrl + "\n"
-                                + "clientId: " + this.options.ClientId + "\n"
-                                + "username: " + this.options.Username + "\n"
-                                + "password: " + this.options.Password + "\n"
-                                + "debugEnabled: " + this.options.IsDebugEnabled + "\n"
-                                + "autoLogin: " + this.options.IsAutoLogin + "\n"
-                                + "defaultAgentId: " + this.options.DefaultAgentId + "\n"
-                                + "defaultDn: " + this.options.DefaultDn + "\n"
-                                + "defaultDestination: " + this.options.DefaultDestination + "\n"
-                                );
-                            break;
+                            case "console-config":
+                                this.Write("Configuration:\n"
+                                    + "apiKey: " + this.options.ApiKey + "\n"
+                                    + "baseUrl: " + this.options.BaseUrl + "\n"
+                                    + "clientId: " + this.options.ClientId + "\n"
+                                    + "username: " + this.options.Username + "\n"
+                                    + "password: " + this.options.Password + "\n"
+                                    + "debugEnabled: " + this.options.DebugEnabled + "\n"
+                                    + "autoLogin: " + this.options.AutoLogin + "\n"
+                                    + "defaultAgentId: " + this.options.DefaultAgentId + "\n"
+                                    + "defaultDn: " + this.options.DefaultDn + "\n"
+                                    + "defaultDestination: " + this.options.DefaultDestination + "\n"
+                                    );
+                                break;
 
-                        case "clear":
-                        case "cls":
-                            // Low tech...
-                            for (int i = 0; i < 80; ++i) this.Write("");
-                            break;
+                            case "clear":
+                            case "cls":
+                                // Low tech...
+                                for (int i = 0; i < 80; ++i) this.Write("");
+                                break;
 
-                        case "exit":
-                        case "x":
-                            this.Write("Cleaning up and exiting...");
-                            this.api.Destroy();
-                            return;
+                            case "exit":
+                            case "x":
+                                this.Write("Cleaning up and exiting...");
+                                this.api.Destroy();
+                                return;
 
-                        case "?":
-                        case "help":
-                            //this.printHelp();
-                            break;
+                            case "?":
+                            case "help":
+                                this.PrintHelp();
+                                break;
 
-                        default:
-                            break;
+                            default:
+                                break;
 
+                        }
+                    }
+                    catch(Exception e)
+                    {
+                        Write("Exception!" + e.Message);
                     }
                 }
             } 
             catch(Exception e) 
             {
                 Write("Exception!" + e.Message);
-            }
-        }
-
-        private class Command
-        {
-            public String Name { get; set; }
-            public List<String> Args;
-
-            public Command(String name, List<String> args)
-            {
-                this.Name = name;
-                this.Args = args;
-            }
-        }
-
-        private class CompleteParams
-        {
-            public String ConnId { get; set; }
-            public String ParentConnId { get; set; }
-
-            public CompleteParams(String connId, String parentConnId)
-            {
-                this.ConnId = connId;
-                this.ParentConnId = parentConnId;
             }
         }
     }
