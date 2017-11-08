@@ -3,7 +3,7 @@
 ## Running
 
 You can run the console sample by passing in command line arguments as shown in this example:<br>
-`console-agent-app-csharp.exe -ApiKey=<key> -ClientId=<clientId> -BaseUrl=<url> -AuthBaseUrl=<optional> -Username=<tenant\\username> -Password=<p> -DebugEnabled -DefaultAgentId=<optional> -DefaultDn=<optional> -DefaultDestination=<optional>`
+`console-agent-app-csharp.exe -ApiKey <key> -ClientId <clientId> -BaseUrl <url> -AuthBaseUrl <optional> -Username <tenant\\username> -Password <p> -DebugEnabled -DefaultAgentId <optional> -DefaultDn <optional> -DefaultDestination <optional> -AutoLogin <true||false>`
 
 ## Commands
 
@@ -17,7 +17,7 @@ You can run the console sample by passing in command line arguments as shown in 
 | dn               |                   |             | print the current state of the dn                      |
 | calls            |                   |             | print the list of active calls                      |
 | ready            | r                 |             | set agent state to ready                      |
-| not-ready        | nr                |             | set agent state to notready                      |
+| not-ready        | nr                |  reason, workmode           | set agent state to notready                      |
 | dnd-on           |                   |             | turn do-not-disturb on for voice |
 | dnd-off          |                   |             | turn do-not-disturb off for voice |
 | voice-logout     |                   |             | logout the voice channel (does not logout the overall session) |
