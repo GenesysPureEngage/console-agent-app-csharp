@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace consoleagentappcsharp
 {
@@ -17,8 +18,10 @@ namespace consoleagentappcsharp
                 }
 
                 WorkspaceConsole console = new WorkspaceConsole(options);
-                console.Run();
 
+                // Run() is an async method so we have to call Wait()
+                // have this thread wait for it to finish executing.
+                console.Run().Wait();
             }
             catch (Exception e)
             {
