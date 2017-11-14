@@ -274,7 +274,7 @@ namespace consoleagentappcsharp
             String dn = hasArgs ? args[1] : this.options.DefaultDn;
 
             this.Write("Sending activate-channels with agentId [" + agentId + "] and dn " + dn + "]...");
-            this.api.ActivateChannels(agentId, dn, null, null);
+            this.api.ActivateChannels(agentId, dn, null, null, Genesys.Workspace.Internal.Model.ActivatechannelsData.AgentWorkModeEnum.ManualIn);
         }
 
         private void NotReady(List<String> args)

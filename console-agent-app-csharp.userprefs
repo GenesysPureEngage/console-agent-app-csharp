@@ -1,28 +1,37 @@
 ﻿<Properties StartupConfiguration="{F8F3901D-162B-4C56-B75C-17E5FDEF353C}|Default">
-  <MonoDevelop.Ide.Workbench ActiveDocument="log4net.config">
+  <MonoDevelop.Ide.Workbench ActiveDocument="../workspace-client-csharp/src/Genesys.Workspace/TargetsApi.cs">
     <Files>
-      <File FileName="../workspace-client-csharp/src/Genesys.Workspace/WorkspaceApi.cs" Line="146" Column="103" />
-      <File FileName="../workspace-client-csharp/src/Genesys.Workspace/VoiceApi.cs" Line="103" Column="1" />
+      <File FileName="../workspace-client-csharp/src/Genesys.Workspace/WorkspaceApi.cs" Line="382" Column="1" />
+      <File FileName="../workspace-client-csharp/src/Genesys.Workspace/VoiceApi.cs" Line="357" Column="34" />
       <File FileName="../workspace-client-csharp/src/Genesys.Workspace/SessionApi.cs" Line="29" Column="9" />
       <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Internal/Api/SessionApi.cs" Line="534" Column="1" />
       <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Internal/Client/ApiClient.cs" Line="139" Column="14" />
-      <File FileName="WorkspaceConsole.cs" Line="472" Column="16" />
+      <File FileName="WorkspaceConsole.cs" Line="1121" Column="31" />
       <File FileName="../workspace-client-csharp/src/Genesys.Workspace/ApiClientLogger.cs" Line="11" Column="9" />
       <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Model/BusinessAttributeValue.cs" Line="18" Column="1" />
-      <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Model/BusinessAttribute.cs" Line="20" Column="10" />
+      <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Model/BusinessAttribute.cs" Line="29" Column="13" />
       <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Model/User.cs" Line="4" Column="34" />
-      <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Model/KeyValueCollection.cs" Line="102" Column="10" />
+      <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Model/KeyValueCollection.cs" Line="82" Column="1" />
       <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Model/Dn.cs" Line="22" Column="266" />
       <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Model/ActionCode.cs" Line="12" Column="22" />
       <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Common/Util.cs" Line="39" Column="16" />
       <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Model/Call.cs" Line="20" Column="26" />
-      <File FileName="Program.cs" Line="22" Column="1" />
+      <File FileName="Program.cs" Line="15" Column="18" />
       <File FileName="log4net.config" Line="4" Column="11" />
+      <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Internal/Model/UserData.cs" Line="31" Column="26" />
+      <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Internal/Model/VoicecallsidcompleteData.cs" Line="31" Column="26" />
+      <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Model/KeyValuePair.cs" Line="10" Column="6" />
+      <File FileName="../workspace-client-csharp/src/Genesys.Workspace/TargetsApi.cs" Line="40" Column="17" />
+      <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Model/TargetsSearchOptions.cs" Line="1" Column="1" />
+      <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Model/TargetSearchResult.cs" Line="1" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore />
+    <BreakpointStore>
+      <Breakpoint file="/Users/jcrespin/Development/DevFoundry/GWS9/console-agent-app-csharp/WorkspaceConsole.cs" relfile="WorkspaceConsole.cs" line="1045" column="1" />
+      <Breakpoint file="/Users/jcrespin/Development/DevFoundry/GWS9/workspace-client-csharp/src/Genesys.Workspace/TargetsApi.cs" line="37" column="1" />
+    </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
   <MultiItemStartupConfigurations />
