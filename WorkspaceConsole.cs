@@ -222,15 +222,14 @@ namespace consoleagentappcsharp
             log.Debug("Getting auth token...");
             String baseUrl = this.options.AuthBaseUrl ?? this.options.BaseUrl;
             ApiClient authClient = new ApiClient(baseUrl + "/auth/v3");
-            authClient.Configuration.ApiClient = authClient;  // circular reference?!?
-            authClient.Configuration.AddApiKey("x-api-key", this.options.ApiKey);
-            authClient.Configuration.AddDefaultHeader("x-api-key", this.options.ApiKey);
+            authClient.Configuration.ApiKey.Add("x-api-key", this.options.ApiKey);
+            authClient.Configuration.DefaultHeader.Add("x-api-key", this.options.ApiKey);
             authClient.RestClient.AddDefaultHeader("x-api-key", this.options.ApiKey);
             
             String encoded = Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1").GetBytes(this.options.ClientId + ":" + this.options.ClientSecret));
             String authorization = "Basic " + encoded;
 
-            AuthenticationApi authApi = new AuthenticationApi(authClient.Configuration);
+            AuthenticationApi authApi = new AuthenticationApi((Genesys.Authentication.Client.Configuration)authClient.Configuration);
 
             DefaultOAuth2AccessToken response = authApi.RetrieveToken(
                     "password", authorization, null, "*",

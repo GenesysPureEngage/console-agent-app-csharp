@@ -1,12 +1,12 @@
 ﻿<Properties StartupConfiguration="{F8F3901D-162B-4C56-B75C-17E5FDEF353C}|Default">
-  <MonoDevelop.Ide.Workbench ActiveDocument="../workspace-client-csharp/src/Genesys.Workspace/TargetsApi.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="WorkspaceConsole.cs">
     <Files>
-      <File FileName="../workspace-client-csharp/src/Genesys.Workspace/WorkspaceApi.cs" Line="382" Column="1" />
-      <File FileName="../workspace-client-csharp/src/Genesys.Workspace/VoiceApi.cs" Line="357" Column="34" />
+      <File FileName="../workspace-client-csharp/src/Genesys.Workspace/WorkspaceApi.cs" Line="71" Column="19" />
+      <File FileName="../workspace-client-csharp/src/Genesys.Workspace/VoiceApi.cs" Line="38" Column="1" />
       <File FileName="../workspace-client-csharp/src/Genesys.Workspace/SessionApi.cs" Line="29" Column="9" />
       <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Internal/Api/SessionApi.cs" Line="534" Column="1" />
       <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Internal/Client/ApiClient.cs" Line="139" Column="14" />
-      <File FileName="WorkspaceConsole.cs" Line="1121" Column="31" />
+      <File FileName="WorkspaceConsole.cs" Line="234" Column="51" />
       <File FileName="../workspace-client-csharp/src/Genesys.Workspace/ApiClientLogger.cs" Line="11" Column="9" />
       <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Model/BusinessAttributeValue.cs" Line="18" Column="1" />
       <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Model/BusinessAttribute.cs" Line="29" Column="13" />
@@ -21,16 +21,19 @@
       <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Internal/Model/UserData.cs" Line="31" Column="26" />
       <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Internal/Model/VoicecallsidcompleteData.cs" Line="31" Column="26" />
       <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Model/KeyValuePair.cs" Line="10" Column="6" />
-      <File FileName="../workspace-client-csharp/src/Genesys.Workspace/TargetsApi.cs" Line="40" Column="17" />
+      <File FileName="../workspace-client-csharp/src/Genesys.Workspace/TargetsApi.cs" Line="52" Column="10" />
       <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Model/TargetsSearchOptions.cs" Line="1" Column="1" />
       <File FileName="../workspace-client-csharp/src/Genesys.Workspace/Model/TargetSearchResult.cs" Line="1" Column="1" />
+      <File FileName="../authentication-client-csharp/src/Genesys.Authentication/Client/ApiClient.cs" Line="1" Column="1" />
+      <File FileName="../authentication-client-csharp/src/Genesys.Authentication/Api/AuthenticationApi.cs" Line="406" Column="39" />
+      <File FileName="../authentication-client-csharp/src/Genesys.Authentication/Client/Configuration.cs" Line="24" Column="18" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore>
-      <Breakpoint file="/Users/jcrespin/Development/DevFoundry/GWS9/console-agent-app-csharp/WorkspaceConsole.cs" relfile="WorkspaceConsole.cs" line="1045" column="1" />
-      <Breakpoint file="/Users/jcrespin/Development/DevFoundry/GWS9/workspace-client-csharp/src/Genesys.Workspace/TargetsApi.cs" line="37" column="1" />
+      <Breakpoint file="/Users/jcrespin/Development/DevFoundry/GWS9/console-agent-app-csharp/WorkspaceConsole.cs" relfile="WorkspaceConsole.cs" line="1044" column="1" />
+      <Breakpoint file="/Users/jcrespin/Development/DevFoundry/GWS9/workspace-client-csharp/src/Genesys.Workspace/TargetsApi.cs" line="33" column="1" />
     </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
